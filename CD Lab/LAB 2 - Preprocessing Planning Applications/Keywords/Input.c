@@ -4,7 +4,7 @@
 int main(){
 	int a=10;
 	float b=23.5;
-	const char='f';
+	const char a = 'f';
 
 	if(a>7)
 		printf("%d",sizeof(a));
