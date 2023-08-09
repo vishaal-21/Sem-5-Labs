@@ -6,7 +6,7 @@
 #include<string.h>
 #include<arpa/inet.h>
 #include<unistd.h>
-#define PORTNO 8000
+#define PORTNO 9999
 void main(){
     int len,result,n;
     struct sockaddr_in address;
@@ -15,7 +15,7 @@ void main(){
     int sockfd = socket(AF_INET,SOCK_STREAM,0);
 
     address.sin_family=AF_INET;
-    address.sin_addr.s_addr=inet_addr("172.16.59.28");
+    address.sin_addr.s_addr=inet_addr("10.86.5.137");
     address.sin_port=htons(PORTNO);
     len=sizeof(address);
 
@@ -35,11 +35,4 @@ void main(){
     }
 
     write(sockfd,ch,strlen(ch));
-    // printf("String sent back is ..... ");
-
-    // while(1){
-    //     n=read(sockfd,buffer,sizeof(buffer));
-    //     puts(buffer);
-    //     // break;
-    // }
 }
