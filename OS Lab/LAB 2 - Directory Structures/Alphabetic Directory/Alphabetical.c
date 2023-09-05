@@ -6,9 +6,9 @@
 #include <dirent.h>
 #include <string.h>
 void sortArray(char *arr[], int size){
-    char *temp;
+    char temp[256];
 
-    for(int i=0;i<size;i++){
+    for(int i=0;i<size-1;i++){
         for(int j=0;j<size-i-1;j++){
             if(strcmp(arr[j],arr[j+1])>0){
                 strcpy(temp,arr[j]);
@@ -22,7 +22,7 @@ void main(int argc, char *argv[])
 {
     DIR *d;
     int count = 0;
-    char *arr[5100];
+    char *arr[256];
 
     d = opendir(argv[1]);
 
@@ -49,7 +49,8 @@ void main(int argc, char *argv[])
 
         if (S_ISDIR(buf.st_mode))
         {
-            arr[count++] = entry->d_name;
+            arr[count] = entry->d_name;
+            count++;
         }
         entry = readdir(d);
     }

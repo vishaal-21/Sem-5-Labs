@@ -24,10 +24,10 @@ void main(int argc, char *argv[])
     }
     printf("Linked.\n");
 
-    // if(unlink(newpath)<0)
-    // {
-    //     perror("Error");
-    //     exit(1); 
-    // } 
-    // printf("Unlinked.");
+    if(unlink(newpath)<0)
+    {
+        perror("Error");
+        exit(1); 
+    } 
+    printf("Unlinked.");
 }
