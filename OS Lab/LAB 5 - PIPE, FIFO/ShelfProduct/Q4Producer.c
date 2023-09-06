@@ -30,23 +30,19 @@ void main()
     }
 
     printf("Producer starts\n");
-    if(shelf<MAX)
+
+    while(1)
     {
-        shelf++;
-        write(pipe_fd,&shelf,sizeof(int));
-        printf("Producer added. Shelf has : %d\n",shelf);
+        if(shelf<MAX)
+        {
+            shelf++;
+            write(pipe_fd,&shelf,sizeof(int));
+            printf("Producer added. Shelf has : %d\n",shelf);
+        }
+        
+        sleep(1);
+        read(pipe_fd,&shelf,sizeof(int));
     }
 
-    // while(1)
-    // {
-    //     if(shelf<MAX)
-    //     {
-    //         shelf++;
-    //         printf("Producer added. Shelf has : %d\n",shelf);
-    //         write(pipe_fd,&shelf,sizeof(int));
-    //     }
-        
-    //     sleep(2);
-    // }
     close(pipe_fd);
 }

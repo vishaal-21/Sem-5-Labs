@@ -25,16 +25,18 @@ void main()
     while(1)
     {
         read(pipe_fd,&shelf,sizeof(int));
+        // printf("Added to shelf. Size : %d\n",shelf);
 
         if(shelf>0)
         {
             shelf--;
             printf("Consumer consumed. Shelf has : %d\n",shelf);
+            sleep(3);
+            write(pipe_fd,&shelf,sizeof(int));
         }
         else
             printf("\nWaiting for produce.");
 
-        // sleep(8);
     }
     close(pipe_fd);
 }
