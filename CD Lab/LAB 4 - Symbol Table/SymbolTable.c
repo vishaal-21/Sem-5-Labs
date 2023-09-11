@@ -81,6 +81,7 @@ void removePreprocessorDirectivesAndComments(FILE *f1, FILE *f2)
             else
             {
                 if (line[i] == '#')
+                // if(strstr(line,"import"))
                 {
                     do
                     {

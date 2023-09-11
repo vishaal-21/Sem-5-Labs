@@ -95,25 +95,25 @@ void removePreprocessorDirectivesAndComments(FILE *f1, FILE *f2)
 // ===========================================================================
 int isOtherRelop(char ch)
 {
-	if (ch != '>' && ch != '<' && ch != '=' && ch != '!')
+	if (ch != '>' || ch != '<' || ch != '=' || ch != '!')
 		return 1;
 	return 0;
 }
-// ================================================================================
+
 int isOtherArithmop(char ch)
 {
-	if (ch != '+' && ch != '-' && ch != '/' && ch != '*' && ch != '%')
+	if (ch != '+' || ch != '-' || ch != '/' || ch != '*' || ch != '%')
 		return 1;
 	return 0;
 }
-// ===============================================================================
+
 int isOtherLogop(char ch)
 {
-	if (ch != '&' && ch != '|' && ch != '!')
+	if (ch != '&' || ch != '|' || ch != '!')
 		return 1;
 	return 0;
 }
-// ==============================================================================
+
 int isKeyword(char str[])
 {
 	for (int k = 0; k < 32; k++)
@@ -121,9 +121,10 @@ int isKeyword(char str[])
 		if (strcmp(keywords[k], str) == 0)
 			return 1;
 	}
+
 	return 0;
 }
-// ==============================================================================
+
 void getAllOperators(char line[], int row_no, Token token[])
 {
 	for (int i = 0; i < strlen(line); i++)
@@ -183,22 +184,22 @@ void getAllOperators(char line[], int row_no, Token token[])
 			strcpy(token[ind].token_name, "-");
 			ind++;
 		}
-		if (line[i] == '/' && isOtherArithmop(line[i + 1]) && isOtherArithmop(line[i - 1]))
+		if (line[i] == '/' && isOtherArithmop(line[i + 1]))
 		{
 			strcpy(token[ind].type, "DIV");
 			strcpy(token[ind].token_name, "/");
 			ind++;
 		}
-		if (line[i] == '*' && isOtherArithmop(line[i + 1]) && isOtherArithmop(line[i - 1]))
+		if (line[i] == '*' && isOtherArithmop(line[i + 1]))
 		{
 			strcpy(token[ind].type, "MUL");
 			strcpy(token[ind].token_name, "*");
 			ind++;
 		}
-		if (line[i] == '%' && isOtherArithmop(line[i + 1]) && isOtherArithmop(line[i - 1]))
+		if (line[i] == '%' && isOtherArithmop(line[i + 1]))
 		{
 			strcpy(token[ind].type, "MOD");
-			strcpy(token[ind].token_name, "%");
+			strcpy(token[ind].token_name, '%');
 			ind++;
 		}
 
@@ -228,17 +229,16 @@ void getAllOperators(char line[], int row_no, Token token[])
 		token[ind].column_no = i;
 	}
 }
-// =============================================================================
+
 void getKeywordsAndIdentifiers(char line[], int row, Token token[])
 {
 	char word[256];
 	char str[100];
-	int insideDoubleQuotes = 0;
-	int insideSingleQuotes = 0;
 
 	for (int i = 0; i < strlen(line); i++)
 	{
 		int j = 0;
+		int argCount = 0;
 
 		if (line[i] == '"')
 		{
@@ -254,14 +254,6 @@ void getKeywordsAndIdentifiers(char line[], int row, Token token[])
 			{
 				i++;
 			} while (line[i] != '\'');
-		}
-
-		if (line[i] == '<')
-		{
-			do
-			{
-				i++;
-			} while (line[i] != '>');
 		}
 
 		if ((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z') || line[i] == '_')
@@ -283,23 +275,23 @@ void getKeywordsAndIdentifiers(char line[], int row, Token token[])
 				token[ind].column_no = i - strlen(word);
 				ind++;
 			}
-			else if (!isKeyword(word) && (strcmp(word, "define") != 0 && strcmp(word, "include") != 0))
+			else if (!isKeyword(word))
 			{
 				identifier_count++;
 				sprintf(str, "id-%d", identifier_count);
-				strcpy(token[ind].type, str);
 				strcpy(token[ind].token_name, word);
+				strcpy(token[ind].type, str);
 				token[ind].row_no = row;
 				token[ind].column_no = i - strlen(word);
 				ind++;
 			}
-
-			strcpy(word, "");
-			j = 0;
 		}
+
+		strcpy(word, "");
+		j = 0;
 	}
 }
-// ==============================================================================
+
 void getSpecialSymbols(char line[], int row, Token token[])
 {
 	for (int i = 0; i < strlen(line); i++)
@@ -431,75 +423,75 @@ void getSpecialSymbols(char line[], int row, Token token[])
 		}
 	}
 }
-// ==============================================================================
+
 void getStringLiterals(char line[], int row, Token token[])
 {
-	char lit[256];
-	int j = 0;
+    char lit[256];
+    int j = 0;
 
-	for (int i = 0; i < strlen(line); i++)
-	{
-		if (line[i] == '"')
-		{
-			token[ind].column_no = i;
-			i++;
+    for (int i = 0; i < strlen(line); i++)
+    {
+        if (line[i] == '"')
+        {
+            token[ind].column_no = i;
+            i++;
 
-			while (line[i] != '"')
-			{
-				lit[j++] = line[i];
-				i++;
-			}
-		}
-		lit[j] = '\0';
-	}
+            while (line[i] != '"')
+            {
+                lit[j++] = line[i];
+                i++;
+            }
+        }
+        lit[j] = '\0';
+    }
 
-	if (strlen(lit) != 0)
-	{
-		strcpy(token[ind].type, "String Literal");
-		strcpy(token[ind].token_name, lit);
-		token[ind].row_no = row;
-		ind++;
-		strcpy(lit, "");
-	}
+    if (strlen(lit) != 0)
+    {
+        strcpy(token[ind].type, "String Literal");
+        strcpy(token[ind].token_name, lit);
+        token[ind].row_no = row;
+        ind++;
+        strcpy(lit, "");
+    }
 }
-// ===========================================================================
+
 void getNumericLiterals(char line[], int row, Token token[])
 {
-	char lit[256];
-	int insideQuotes = 0;
-	int j = 0;
+    char lit[256];
+    int insideQuotes = 0;
+    int j = 0;
 
-	for (int i = 0; i < strlen(line); i++)
-	{
-		if (line[i] == '"')
-		{
-			insideQuotes = !insideQuotes;
-			i++;
-		}
+    for (int i = 0; i < strlen(line); i++)
+    {
+        if (line[i] == '"')
+        {
+            insideQuotes = !insideQuotes;
+            i++;
+        }
 
-		if (!insideQuotes && (line[i] >= '0' && line[i] <= '9'))
-		{
-			token[ind].column_no = i;
-			while ((line[i] >= '0' && line[i] <= '9') || line[i] == '.')
-			{
-				lit[j++] = line[i];
-				i++;
-			}
-		}
-		lit[j] = '\0';
-	}
+        if (!insideQuotes && (line[i] >= '0' && line[i] <= '9'))
+        {
+            token[ind].column_no = i;
+            while ((line[i] >= '0' && line[i] <= '9') || line[i] == '.')
+            {
+                lit[j++] = line[i];
+                i++;
+            }
+        }
+        lit[j] = '\0';
+    }
 
-	if (strlen(lit) != 0)
-	{
-		strcpy(token[ind].type, "Numeric Literal");
-		strcpy(token[ind].token_name, lit);
-		token[ind].row_no = row;
-		token[ind].column_no -= strlen(lit);
-		ind++;
-		strcpy(lit, "");
-	}
+    if (strlen(lit) != 0)
+    {
+        strcpy(token[ind].type, "Numeric Literal");
+        strcpy(token[ind].token_name, lit);
+        token[ind].row_no = row;
+        token[ind].column_no -= strlen(lit);
+        ind++;
+        strcpy(lit, "");
+    }
 }
-// ==============================================================================
+
 void main()
 {
 	FILE *f1, *f2;
@@ -528,7 +520,7 @@ void main()
 
 	while (fgets(line, sizeof(line), f2))
 	{
-		getKeywordsAndIdentifiers(line, row, token);
+		getKeywords(line, row, token);
 		getAllOperators(line, row, token);
 		getSpecialSymbols(line, row, token);
 		getStringLiterals(line, row, token);
