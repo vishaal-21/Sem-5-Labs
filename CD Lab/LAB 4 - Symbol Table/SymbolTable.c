@@ -5,6 +5,7 @@ int ind = 0;
 int main_flag = 0;
 int mlc_flag = 0;
 int identifier_count = 0;
+
 TableElement *list = NULL;
 Symbol symbol;
 

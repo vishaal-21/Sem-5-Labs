@@ -46,7 +46,7 @@ int search(char str[], TableElement **list)
     while (temp != NULL)
     {
         if (strcmp(temp->data.symbolName, str) == 0)
-            return 1;
+            return temp->data.index;
 
         temp = temp->next;
     }
