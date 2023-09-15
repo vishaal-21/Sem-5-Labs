@@ -256,7 +256,7 @@ void getKeywordsAndIdentifiers(char line[], int *i, Token token[])
     {
         int id = search(word, &list);
 
-        if ( id == 0)
+        if (id == 0)
         {
             identifier_count++;
             sprintf(str, "id-%d", identifier_count);
@@ -352,6 +352,29 @@ void getStringLiterals(char line[], int *i, Token token[])
         strcpy(lit, "");
     }
 }
+void getCharacterLiterals(char line[], int *i, Token token[])
+{
+    char lit[256];
+    int j = 0;
+
+    token[ind].column_no = (*i)++;
+
+    while (line[*i] != '\'')
+    {
+        lit[j++] = line[*i];
+        (*i)++;
+    }
+    lit[j] = '\0';
+
+    if (strlen(lit) != 0)
+    {
+        strcpy(token[ind].type, "Character Literal");
+        strcpy(token[ind].token_name, lit);
+        token[ind].row_no = row;
+        ind++;
+        strcpy(lit, "");
+    }
+}
 void getNumericLiterals(char line[], int *i, Token token[])
 {
     char lit[256];
@@ -385,8 +408,8 @@ void generateTokens(char line[], Token token[])
         if (line[i] == '"')
             getStringLiterals(line, &i, token);
         else if (line[i] == '\'')
-            insideSingleQuotes = !insideSingleQuotes;
-        else if ((isalpha(line[i]) || line[i] == '_') && !insideSingleQuotes)
+            getCharacterLiterals(line, &i, token);
+        else if (isalpha(line[i]) || line[i] == '_')
             getKeywordsAndIdentifiers(line, &i, token);
         else if (isdigit(line[i]))
             getNumericLiterals(line, &i, token);
