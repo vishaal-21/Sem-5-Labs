@@ -14,7 +14,7 @@ void main(){
     int sockfd = socket(AF_INET,SOCK_STREAM,0);
 
     seraddr.sin_family=AF_INET;
-    seraddr.sin_addr.s_addr=inet_addr("10.86.5.137");
+    seraddr.sin_addr.s_addr=inet_addr("10.86.6.177");
     seraddr.sin_port=htons(PORTNO);
 
     bind(sockfd,(struct sockaddr*) &seraddr,sizeof(seraddr));
