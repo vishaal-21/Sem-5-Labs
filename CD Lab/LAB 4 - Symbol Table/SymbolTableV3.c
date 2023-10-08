@@ -3,10 +3,10 @@
 #include <ctype.h>
 
 int ind = 0;
-int main_flag = 0;
-int mlc_flag = 0;
+int func_flag = 0;
 int identifier_count = 0;
-int row = 0;
+int row = 1;
+int col = 0;
 
 TableElement *list = NULL;
 Symbol symbol;
@@ -23,75 +23,60 @@ void displayToken(Token token)
 void removePreprocessorDirectivesAndComments(FILE *f1, FILE *f2)
 {
     char line[256];
+    int insideQuotes = 0;
 
     char ch = fgetc(f1);
 
-    while (fgets(line, sizeof(line), f1))
+    while (ch != EOF)
     {
-        char *res = strstr(line, "main");
-
-        if (res != NULL)
-            main_flag = 1;
-
-        int insideQuotes = 0;
-
-        for (int i = 0; i < strlen(line); i++)
+        if (ch == '"')
         {
-            if (line[i] == '"')
-                insideQuotes = !insideQuotes;
-
-            if (line[i] == '/' && line[i + 1] == '/' && !insideQuotes)
+            insideQuotes = !insideQuotes;
+            fputc(ch, f2);
+            ch = fgetc(f1);
+        }
+        if (ch == '/' && !insideQuotes)
+        {
+            ch = fgetc(f1);
+            if (ch == '/')
             {
                 do
                 {
-                    i++;
-                } while (line[i] != '\n');
+                    ch = fgetc(f1);
+                } while (ch != '\n');
             }
-
-            else if (line[i] == '/' && line[i + 1] == '*' && !insideQuotes)
+            else if (ch == '*')
             {
                 do
                 {
-                    i++;
-
-                    if (line[i + 1] == '\n')
-                    {
-                        mlc_flag = 1;
-                        break;
-                    }
-                } while (line[i + 1] != '*' && line[i + 2] != '/');
-                break;
+                    while (ch != '*')
+                        ch = fgetc(f1);
+                    ch = fgetc(f1);
+                } while (ch != '/');
+                ch = fgetc(f1);
             }
-
-            if (mlc_flag == 1)
+        }
+        if (ch == '#' && !insideQuotes && func_flag == 0)
+        {
+            do
             {
-                while (line[i] != '\n')
-                {
-                    i++;
-
-                    if (line[i] == '*' && line[i + 1] == '/')
-                    {
-                        mlc_flag = 0;
-                        break;
-                    }
-                }
-                break;
-            }
-
-            if (main_flag == 1)
+                ch = fgetc(f1);
+            } while (ch != '\n');
+        }
+        else
+        {
+            if (ch == '{')
+                func_flag++;
+            else if (ch == '}')
+                func_flag--;
+            else if (ch == '\n')
             {
-                fputc(line[i], f2);
+                row++;
+                col = 0;
             }
-            else
-            {
-                if (line[i] == '#')
-                {
-                    do
-                    {
-                        i++;
-                    } while (line[i] != '\n');
-                }
-            }
+
+            fputc(ch, f2);
+            ch = fgetc(f1);
         }
     }
 }
@@ -137,97 +122,80 @@ Token getAllOperators(FILE *f)
     char ch1 = fgetc(f);
     char ch2 = fgetc(f);
 
-    // printf("%c %c %c",ch0,ch1,ch2);
-
     if (ch1 == '!' && ch2 == '=')
     {
         strcpy(token.type, "NE");
         strcpy(token.token_name, "!=");
-        ind++;
     }
     if (ch1 == '<' && ch2 == '=')
     {
         strcpy(token.type, "LE");
         strcpy(token.token_name, "<=");
-        ind++;
     }
     if (ch1 == '<' && isOtherRelop(ch2))
     {
         strcpy(token.type, "LT");
         strcpy(token.token_name, "<");
-        ind++;
     }
     if (ch1 == '=' && ch2 == '=')
     {
         strcpy(token.type, "EQ");
         strcpy(token.token_name, "==");
-        ind++;
     }
     if (ch1 == '>' && ch2 == '=')
     {
         strcpy(token.type, "GE");
         strcpy(token.token_name, ">=");
-        ind++;
     }
     if (ch1 == '>' && isOtherRelop(ch2))
     {
         strcpy(token.type, "GT");
         strcpy(token.token_name, ">");
-        ind++;
     }
     if (ch1 == '=' && isOtherRelop(ch2) && isOtherRelop(ch0))
     {
         strcpy(token.type, "Assignment");
         strcpy(token.token_name, "=");
-        ind++;
     }
     if (ch1 == '+' && isOtherArithmop(ch2) && isOtherArithmop(ch0))
     {
         strcpy(token.type, "ADD");
         strcpy(token.token_name, "+");
-        ind++;
     }
     if (ch1 == '-' && isOtherArithmop(ch2) && isOtherArithmop(ch0))
     {
         strcpy(token.type, "SUB");
         strcpy(token.token_name, "-");
-        ind++;
     }
     if (ch1 == '/' && isOtherArithmop(ch2) && isOtherArithmop(ch0))
     {
         strcpy(token.type, "DIV");
         strcpy(token.token_name, "/");
-        ind++;
     }
     if (ch1 == '*' && isOtherArithmop(ch2) && isOtherArithmop(ch0))
     {
         strcpy(token.type, "MUL");
         strcpy(token.token_name, "*");
-        ind++;
     }
     if (ch1 == '%' && isOtherArithmop(ch2) && isOtherArithmop(ch0))
     {
         strcpy(token.type, "MOD");
         strcpy(token.token_name, "%");
-        ind++;
     }
     if (ch1 == '&' && ch2 == '&')
     {
         strcpy(token.type, "Logical AND");
         strcpy(token.token_name, "&&");
-        ind++;
     }
     if (ch1 == '|' && ch2 == '|')
     {
         strcpy(token.type, "Logical OR");
         strcpy(token.token_name, "||");
-        ind++;
     }
     if (ch1 == '!' && isOtherLogop(ch2))
     {
         strcpy(token.type, "Logical NOT");
         strcpy(token.token_name, "!");
-        ind++;
     }
 
     // token[ind].row_no = row;
@@ -255,15 +223,13 @@ Token getKeywordsAndIdentifiers(FILE *f)
     }
     fseek(f, -1, SEEK_CUR);
     word[j] = '\0';
-    // printf("%s word\n", word);
 
     if (isKeyword(word))
     {
         strcpy(token.type, "KW");
         strcpy(token.token_name, word);
-        // token[ind].row_no = row;
+        token.row_no = row;
         // token[ind].column_no = *i - strlen(word);
-        // ind++;
     }
     else if (!isKeyword(word))
     {
@@ -275,56 +241,63 @@ Token getKeywordsAndIdentifiers(FILE *f)
             sprintf(str, "id-%d", identifier_count);
             strcpy(token.token_name, word);
             strcpy(token.type, str);
-            // token[ind].row_no = row;
-            // token[ind].column_no = *i - strlen(word);
+            token.row_no = row;
 
-            // int temp_i = *i;
+            ch = fgetc(f);
+            int offset = 1;
 
-            // symbol.index = identifier_count;
-            // strcpy(symbol.symbolName, word);
+            symbol.index = identifier_count;
+            strcpy(symbol.symbolName, word);
 
-            // if (line[*i] == '(')
-            // {
-            //     strcpy(symbol.type, "FUNC");
+            if (ch == '(')
+            {
+                strcpy(symbol.type, "FUNC");
 
-            //     if (strcmp(word, "printf") == 0)
-            //     {
-            //         strcpy(symbol.returnType, "int");
-            //         sprintf(symbol.argNum, "%d", 1);
-            //     }
-            //     else
-            //     {
-            //         if (line[*i + 1] == ')')
-            //         {
-            //             sprintf(symbol.argNum, "%d", 0);
-            //         }
-            //         else
-            //         {
-            //             do
-            //             {
-            //                 temp_i++;
+                if (strcmp(word, "printf") == 0)
+                {
+                    strcpy(symbol.returnType, "int");
+                    sprintf(symbol.argNum, "%d", 1);
+                }
+                else
+                {
+                    ch = fgetc(f);
+                    offset++;
 
-            //                 if (line[temp_i] == ',')
-            //                     argCount++;
+                    if (ch == ')')
+                    {
+                        sprintf(symbol.argNum, "%d", 0);
+                    }
+                    else
+                    {
+                        do
+                        {
+                            ch = fgetc(f);
+                            offset++;
 
-            //             } while (line[temp_i] != ')');
+                            if (ch == ',')
+                                argCount++;
 
-            //             argCount++;
+                        } while (ch != ')');
 
-            //             sprintf(symbol.argNum, "%d", argCount);
-            //         }
+                        argCount++;
 
-            //         strcpy(symbol.returnType, token[ind - 1].token_name);
-            //     }
-            // }
-            // else
-            // {
-            //     strcpy(symbol.type, token[ind - 1].token_name);
-            //     strcpy(symbol.returnType, "--");
-            //     sprintf(symbol.argNum, "%d", 0);
-            // }
+                        sprintf(symbol.argNum, "%d", argCount);
+                    }
 
-            // list = insert(symbol, list);
+                    strcpy(symbol.returnType, token.token_name);
+                }
+            }
+            else
+            {
+                strcpy(symbol.type, token.token_name);
+                strcpy(symbol.returnType, "--");
+                sprintf(symbol.argNum, "%d", 0);
+            }
+
+            offset *= -1;
+
+            fseek(f, offset, SEEK_CUR);
+            list = insert(symbol, list);
         }
         else
         {
@@ -378,12 +351,12 @@ Token getCharacterLiterals(FILE *f)
     // token[ind].column_no = (*i)++;
 
     Token token;
-    char ch=fgetc(f);
+    char ch = fgetc(f);
 
     while (ch != '\'')
     {
         lit[j++] = ch;
-    ch=fgetc(f);
+        ch = fgetc(f);
     }
     lit[j] = '\0';
 
@@ -433,19 +406,22 @@ Token getNextToken(FILE *f)
     Token token;
 
     char ch = fgetc(f);
-    // printf("%c char\n", ch);
 
     while (isspace(ch))
         ch = fgetc(f);
 
     while (ch == '#')
     {
+        printf("%c",ch);
         do
         {
             ch = fgetc(f);
         } while (ch != '\n');
         ch = fgetc(f);
     }
+
+    if(ch==EOF)
+        exit(0);
 
     if (ch == '"')
         return getStringLiterals(f);
@@ -460,9 +436,8 @@ Token getNextToken(FILE *f)
         strcpy(token.type, "Special Symbol");
         token.token_name[0] = ch;
         token.token_name[1] = '\0';
-        // token.row_no = row;
-        // token.column_no = i;
-        // ind++;
+
+        token.row_no = row;
 
         return token;
     }
@@ -492,19 +467,20 @@ void main()
 
     f2 = fopen("Output.txt", "r");
 
-    int i = 0;
-
     printf("TOKENS:\n\n");
 
-    Token token = getNextToken(f2);
-    // displayToken(token);
-    while (token.token_name != NULL)
+    Token token;
+    while (1)
     {
-        displayToken(token);
         token = getNextToken(f2);
-        i++;
 
-        if (i == 73)
+        if (token.type == NULL)
             break;
+
+        displayToken(token);
     }
+
+    printf("\nSYMBOL TABLE:\n\n");
+    printf("Index\tName\tType\tReturn Type\tNo. of arguments\n");
+    displayTable(&list);
 }
