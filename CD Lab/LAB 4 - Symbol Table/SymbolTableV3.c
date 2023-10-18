@@ -17,7 +17,8 @@ const char *keywords[] = {"auto", "break", "case", "char", "continue", "do", "de
 
 void displayToken(Token token)
 {
-    printf("<%s , %s , %d , %d>\n", token.type, token.token_name, token.row_no, token.column_no);
+    // printf("<%s , %s , %d , %d>\n", token.type, token.token_name, token.row_no, token.column_no);
+    printf("<%s , %s>\n", token.type, token.token_name);
 }
 void removePreprocessorDirectivesAndComments(FILE *f1, FILE *f2)
 {
@@ -345,8 +346,8 @@ Token getStringLiterals(FILE *f)
     {
         strcpy(token.type, "String Literal");
         strcpy(token.token_name, lit);
-        token.row_no = row;
-        ind++;
+        // token.row_no = row;
+        // ind++;
         strcpy(lit, "");
     }
 
@@ -404,9 +405,12 @@ Token getNextToken(FILE *f)
     Token token;
 
     char ch = fgetc(f);
+    printf("%c",fgetc(f));
 
     if (ch == '"')
         token = getStringLiterals(f);
+    else
+        ch=fgetc(f);
     // else if (ch == '\'')
     //     getCharacterLiterals(f);
     // else if (isalpha(ch) || ch == '_')
@@ -452,6 +456,7 @@ void main()
     Token token = getNextToken(f2);
     while (token.token_name != NULL)
     {
+        displayToken(token);
         // row++;
 
         // if (strstr(line, "include") != NULL || strstr(line, "define") != NULL)
@@ -459,9 +464,6 @@ void main()
 
         // generateTokens(line, token);
     }
-
-    printf("TOKENS:\n\n");
-    displayToken(token);
 
     printf("\nSYMBOL TABLE:\n\n");
     printf("Index\tName\tType\tReturn Type\tNo. of arguments\n");
