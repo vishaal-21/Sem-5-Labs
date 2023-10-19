@@ -18,7 +18,11 @@ const char *keywords[] = {"auto", "break", "case", "char", "continue", "do", "de
 void displayToken(Token token)
 {
     // printf("<%s , %s , %d , %d>\n", token.type, token.token_name, token.row_no, token.column_no);
+<<<<<<< HEAD
+    printf("<%s , %s>\n", token.type, token.token_name);
+=======
     printf("< %s , %s >\n", token.type, token.token_name);
+>>>>>>> 59bfba48929868ebd78d0a7a72e660e4f65806aa
 }
 void removePreprocessorDirectivesAndComments(FILE *f1, FILE *f2)
 {
@@ -406,9 +410,33 @@ Token getNextToken(FILE *f)
     Token token;
 
     char ch = fgetc(f);
+    printf("%c",fgetc(f));
 
+<<<<<<< HEAD
+    if (ch == '"')
+        token = getStringLiterals(f);
+    else
+        ch=fgetc(f);
+    // else if (ch == '\'')
+    //     getCharacterLiterals(f);
+    // else if (isalpha(ch) || ch == '_')
+    //     getKeywordsAndIdentifiers(f);
+    // else if (isdigit(ch))
+    //     getNumericLiterals(f);
+    // else if (isSpecial(ch))
+    // {
+    //     strcpy(token.type, "Special Symbol");
+    //     token.token_name[0] = ch;
+    //     token.row_no = row;
+    //     token.column_no = i;
+    //     ind++;
+    // }
+    // else
+    //     getAllOperators(f);
+=======
     while (isspace(ch))
         ch = fgetc(f);
+>>>>>>> 59bfba48929868ebd78d0a7a72e660e4f65806aa
 
     while (ch == '#')
     {
@@ -467,6 +495,18 @@ void main()
 
     f2 = fopen("Output.txt", "r");
 
+<<<<<<< HEAD
+    Token token = getNextToken(f2);
+    while (token.token_name != NULL)
+    {
+        displayToken(token);
+        // row++;
+
+        // if (strstr(line, "include") != NULL || strstr(line, "define") != NULL)
+        //     continue;
+
+        // generateTokens(line, token);
+=======
     printf("TOKENS:\n\n");
 
     Token token;
@@ -478,6 +518,7 @@ void main()
             break;
 
         displayToken(token);
+>>>>>>> 59bfba48929868ebd78d0a7a72e660e4f65806aa
     }
 
     printf("\nSYMBOL TABLE:\n\n");
