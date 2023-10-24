@@ -21,11 +21,19 @@ void invalid(char str[])
     printf("===========Parse Unsuccessful===============\n");
     printf("Error in function %s\n", str);
 }
+void parsed()
+{
+    printf("%s parsed\n",token.token_name);
+}
+
+void retract()
+{
+    fseek(f2, -strlen(token.token_name), SEEK_CUR);
+}
 
 void data_type()
 {
     token = getNextToken(f2);
-    printf("%s\n", token.token_name);
 
     if (strcmp(token.token_name, "int") == 0 || strcmp(token.token_name, "char") == 0)
     {
@@ -34,8 +42,7 @@ void data_type()
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
         decl_flag = 0;
     }
 }
@@ -45,7 +52,6 @@ void id_list();
 void listDoublePrime()
 {
     token = getNextToken(f2);
-    printf("%s\n", token.token_name);
 
     if (strcmp(token.token_name, ",") == 0)
     {
@@ -53,15 +59,13 @@ void listDoublePrime()
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
     }
 }
 
 void listPrime()
 {
     token = getNextToken(f2);
-    printf("%s\n", token.token_name);
 
     if (strcmp(token.token_name, ",") == 0)
     {
@@ -93,8 +97,7 @@ void listPrime()
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
     }
 }
 
@@ -103,7 +106,6 @@ void id_list()
     if (decl_flag)
     {
         token = getNextToken(f2);
-        printf("%s\n", token.token_name);
 
         if (strstr(token.type, "id") != NULL)
         {
@@ -118,15 +120,14 @@ void declaration()
     id_list();
 
     token = getNextToken(f2);
-    printf("%s\n", token.token_name);
+
     if (decl_flag && strcmp(token.token_name, ";") == 0)
     {
         declaration();
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
     }
 }
 
@@ -150,8 +151,7 @@ void assignment()
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
         assgn_flag = 0;
     }
 }
@@ -159,7 +159,7 @@ void assignment()
 void decision_prime()
 {
     token = getNextToken(f2);
-    printf("dp : %s\n", token.token_name);
+    parsed();
 
     if (strcmp(token.token_name, "else") == 0)
     {
@@ -167,13 +167,13 @@ void decision_prime()
         {
             statement_list();
 
-            // if (strcmp(getNextToken(f2).token_name, "}") == 0)
-            //     return;
-            // else
-            // {
-            //     invalid("decision prime }");
-            //     exit(1);
-            // }
+            if (strcmp(getNextToken(f2).token_name, "}") == 0)
+                return;
+            else
+            {
+                invalid("decision prime }");
+                exit(1);
+            }
         }
         else
         {
@@ -183,8 +183,7 @@ void decision_prime()
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
     }
 }
 
@@ -197,25 +196,24 @@ void decision_stat()
         if (strcmp(getNextToken(f2).token_name, "(") == 0)
         {
             expression();
-            printf("dec : %s\n", token.token_name);
+            parsed();
 
             if (strcmp(getNextToken(f2).token_name, ")") == 0)
             {
                 if (strcmp(getNextToken(f2).token_name, "{") == 0)
                 {
-                    in_block++;
                     statement_list();
 
-                    if (in_block > 0 && (getNextToken(f2).token_name, "}") == 0)
+                    if (strcmp(getNextToken(f2).token_name, "}") == 0)
                     {
                         printf("decision } parsed\n");
                         decision_prime();
                     }
-                    // else
-                    // {
-                    //     invalid("decision }");
-                    //     exit(1);
-                    // }
+                    else
+                    {
+                        invalid("decision }");
+                        exit(1);
+                    }
                 }
                 else
                 {
@@ -240,10 +238,10 @@ void decision_stat()
 void looping_stat()
 {
     token = getNextToken(f2);
-    printf("%s\n", token.token_name);
 
     if (strcmp(token.token_name, "while") == 0)
     {
+        parsed();
         if (strcmp(getNextToken(f2).token_name, "(") == 0)
         {
             expression();
@@ -253,13 +251,13 @@ void looping_stat()
                 if (strcmp(getNextToken(f2).token_name, "{") == 0)
                 {
                     in_block++;
-                    printf("{ parsed in while");
+                    parsed();
                     statement_list();
                     printf("in while : %s\n", token.token_name);
 
                     if (strcmp(getNextToken(f2).token_name, "}") == 0)
                     {
-                        printf("} parsed in while");
+                        parsed();
                         return;
                     }
                     else
@@ -290,31 +288,31 @@ void looping_stat()
     {
         if (strcmp(getNextToken(f2).token_name, "(") == 0)
         {
-            printf("( parsed\n");
+            parsed();
             assignment();
 
             if (strcmp(getNextToken(f2).token_name, ";") == 0)
             {
-                printf("; parsed\n");
+                parsed();
                 expression();
 
                 if (strcmp(getNextToken(f2).token_name, ";") == 0)
                 {
-                    printf("; parsed\n");
+                    parsed();
                     assignment();
 
                     if (strcmp(getNextToken(f2).token_name, ")") == 0)
                     {
-                        printf(") parsed\n");
+                        parsed();
                         if (strcmp(getNextToken(f2).token_name, "{") == 0)
                         {
                             in_block++;
-                            printf("{ parsed in for\n");
+                            parsed();
                             statement_list();
 
                             if (strcmp(getNextToken(f2).token_name, "}") == 0)
                             {
-                                printf("} parsed in for\n");
+                                parsed();
                                 return;
                             }
                             else
@@ -360,40 +358,55 @@ void looping_stat()
     }
 }
 
-void def_stmt()
-{
-    token = getNextToken(f2);
-
-    if (strcmp(token.token_name, "default") == 0)
-    {
-        if (strcmp(getNextToken(f2).token_name, ":") == 0)
-        {
-            statement_list();
-        }
-    }
-}
-
 void case_stmt()
 {
     token = getNextToken(f2);
 
     if (strcmp(token.token_name, "case") == 0)
     {
-        if (strcmp(getNextToken(f2).type, "Numeric Literal") == 0)
+        parsed();
+        token = getNextToken(f2);
+        if (strcmp(token.type, "Numeric Literal") == 0)
         {
-            if (strcmp(getNextToken(f2).token_name, ":") == 0)
+            parsed();
+            token = getNextToken(f2);
+            if (strcmp(token.token_name, ":") == 0)
             {
+                parsed();
+
+                printf("GOING FROM CASE STMT\n");
                 statement_list();
 
-                if (strcmp(getNextToken(f2).token_name, "break") == 0)
+                token = getNextToken(f2);
+                if (strcmp(token.token_name, "break") == 0)
                 {
-                    if (strcmp(getNextToken(f2).token_name, ";") == 0)
+                    parsed();
+                    printf("here\n");
+                    token = getNextToken(f2);
+
+                    if (strcmp(token.token_name, ";") == 0)
                     {
+                        parsed();
                         case_stmt();
+                        return;
                     }
                 }
             }
         }
+    }
+    else if(strcmp(token.token_name, "default") == 0)
+    {
+       parsed();
+       
+       token=getNextToken(f2);
+        if (strcmp(token.token_name, ":") == 0)
+        {
+            parsed();
+
+            printf("GOING FROM default CASE STMT\n");
+            statement_list();
+            return;
+        } 
     }
 }
 
@@ -403,18 +416,30 @@ void switch_stmt()
 
     if (strcmp(token.token_name, "switch") == 0)
     {
-        if (strcmp(getNextToken(f2).token_name, "(") == 0)
+        parsed();
+        token = getNextToken(f2);
+
+        if (strcmp(token.token_name, "(") == 0)
         {
-            if (strstr(getNextToken(f2).type, "id") != NULL)
+            parsed();
+            token = getNextToken(f2);
+
+            if (strstr(token.type, "id") != NULL)
             {
-                if (strcmp(getNextToken(f2).token_name, ")") == 0)
+                parsed();
+                token = getNextToken(f2);
+
+                if (strcmp(token.token_name, ")") == 0)
                 {
-                    if (strcmp(getNextToken(f2).token_name, "{") == 0)
+                    parsed();
+                    token = getNextToken(f2);
+
+                    if (strcmp(token.token_name, "{") == 0)
                     {
+                        parsed();
                         in_block++;
 
                         case_stmt();
-                        def_stmt();
 
                         if (strcmp(getNextToken(f2).token_name, "}") == 0)
                             return;
@@ -429,37 +454,18 @@ void switch_stmt()
 void statement()
 {
     token = getNextToken(f2);
-    printf("stmt : %s %s %d\n", token.token_name, token.type, in_block);
-
-    while (in_block >= 1)
-    {
-        // token = getNextToken(f2);
-        if (strcmp(token.token_name, "}") == 0)
-        {
-            printf("help: %s\n", token.token_name);
-            printf("parsed a }\n");
-            in_block--;
-            return;
-        }
-        else
-        {
-            printf("khatam\n");
-            offset = -1 * (strlen(token.token_name));
-            fseek(f2, offset, SEEK_CUR);
-            break;
-        }
-    }
+    printf("stmt : %s %s\n", token.token_name, token.type);
 
     if (strstr(token.type, "id") != NULL)
     {
         stmt_flag = 1;
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
 
         assignment();
 
         token = getNextToken(f2);
         printf("=> %s\n", token.token_name);
+
         if (strcmp(token.token_name, ";") == 0)
             return;
         else
@@ -471,24 +477,21 @@ void statement()
     else if (strcmp(token.token_name, "if") == 0)
     {
         stmt_flag = 1;
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
 
         decision_stat();
     }
     else if (strcmp(token.token_name, "for") == 0 || strcmp(token.token_name, "while") == 0)
     {
         stmt_flag = 1;
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
 
         looping_stat();
     }
     else if (strcmp(token.token_name, "switch") == 0)
     {
         stmt_flag = 1;
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
 
         switch_stmt();
     }
@@ -498,21 +501,39 @@ void statement()
         //     return;
 
         stmt_flag = 0;
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
-        return;
+        retract();
+        // return;
     }
 }
 
 // single line functions
 void statement_list()
 {
-    statement();
-
-    if (stmt_flag)
+    token=getNextToken(f2);
+    if(token.token_name==NULL)
     {
-        statement_list();
+        printf("NULL\n");
     }
+    printf("in stmt list : %s\n",token.token_name);
+
+    if(strstr(token.type,"id")!=NULL || strcmp(token.token_name,"if")==0 || strcmp(token.token_name,"for")==0 || strcmp(token.token_name,"while")==0 || strcmp(token.token_name,"switch")==0)
+    {
+        retract();
+
+        statement();
+
+        if (stmt_flag)
+        {
+            printf("recursive GOING FROM STMT LIST\n");
+            statement_list();
+        }
+    }
+    else
+    {
+        retract();
+        return;
+    }
+    
 }
 
 void relop()
@@ -527,8 +548,7 @@ void relop()
     else
     {
         rel_flag = 0;
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
     }
 }
 
@@ -543,8 +563,7 @@ void mulop()
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
         se_flag = 0;
     }
 }
@@ -560,8 +579,7 @@ void addop()
     }
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
         sp_flag = 0;
     }
 }
@@ -576,8 +594,7 @@ void factor()
         return;
     else
     {
-        offset = -1 * (strlen(token.token_name));
-        fseek(f2, offset, SEEK_CUR);
+        retract();
     }
 }
 
@@ -644,11 +661,10 @@ void program()
                 token = getNextToken(f2);
                 if (strcmp(token.token_name, "{") == 0)
                 {
-                    in_block++;
                     declaration();
                     statement_list();
 
-                    if (in_block == 1 && (getNextToken(f2).token_name, "}") == 0)
+                    if (strcmp(getNextToken(f2).token_name, "}") == 0)
                         printf("Parse Successful\n");
                     else
                     {
